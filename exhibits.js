@@ -37,11 +37,12 @@ const engine={intro:'The briefing starts a fresh mystery session.',explore:'Expl
 $$('[data-engine-state]').forEach(b=>b.addEventListener('click',()=>{$$('[data-engine-state]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#engine-description').textContent=engine[b.dataset.engineState];}));
 const roles={traveler:['A traveler signs up.','The registration flow connects the page to protected routes and database constraints that prevent duplicate sign-ups.'],leader:['A leader opens a roster.','Role checks restrict access to assigned trips. Participant information is separated from accounts in the relational schema.'],organization:['An organization plans a trip.','Organization tools connect program creation and leader assignment to feature-based routes and controllers.'],admin:['An admin manages access.','Administrative pages connect organization setup and leader assignment to role-checked backend operations.']};
 $$('[data-role]').forEach(b=>b.addEventListener('click',()=>{$$('[data-role]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));const r=roles[b.dataset.role];$('#role-title').textContent=r[0];$('#role-copy').textContent=r[1];}));
-// Source records remain available without occupying the primary portfolio flow.
-function discloseHash(){const node=document.getElementById(location.hash.slice(1));if(!node)return;const details=node.closest('details');if(details&&!details.open)details.open=true;}
-window.addEventListener('hashchange',discloseHash);discloseHash();
-document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a||a.hash.startsWith('#proj-')||a.hasAttribute('data-open-case'))return;const n=document.getElementById(a.hash.slice(1));const details=n?.closest('details');if(details)details.open=true;});
-const seen=new IntersectionObserver(entries=>{for(const e of entries){e.target.dataset.visible=String(e.isIntersecting);if(e.isIntersecting){$$('.scene-navigation a').forEach(a=>a.setAttribute('aria-current',String(a.hash==='#'+e.target.id)));}}},{rootMargin:'-20% 0px -45% 0px'});$$('.exhibit').forEach(n=>seen.observe(n));
+// Keep the compact project selector, project links, and header in sync with scrolling.
+const projectJump=$('#project-jump'),sceneNav=$('.scene-navigation');
+projectJump.addEventListener('change',()=>window.dispatchEvent(new CustomEvent('portfolio:navigate',{detail:projectJump.value})));projectJump.disabled=false;
+const seen=new IntersectionObserver(entries=>{for(const e of entries){e.target.dataset.visible=String(e.isIntersecting);if(e.isIntersecting){projectJump.value='#'+e.target.id;$$('.scene-links a').forEach(a=>a.setAttribute('aria-current',String(a.hash==='#'+e.target.id)));}}},{rootMargin:'-20% 0px -40% 0px'});$$('.exhibit').forEach(n=>seen.observe(n));
+function measureNavigation(){document.documentElement.style.setProperty('--header-height',$('header').getBoundingClientRect().height+'px');document.documentElement.style.setProperty('--project-nav-height',sceneNav.getBoundingClientRect().height+'px');}
+new ResizeObserver(measureNavigation).observe($('header'));new ResizeObserver(measureNavigation).observe(sceneNav);measureNavigation();
 // Lightweight 2D point study. This preview makes no depth-reconstruction claim.
 const canvas=$('#painting-points'),ctx=canvas.getContext('2d'),img=$('#point-source'),range=$('#point-gather');let points=[],w=1,h=1,raf=0,visible=false,amount=1,target=1,tilt=0,targetTilt=0;
 const paused=()=>reduced.matches||document.body.dataset.motionPaused==='true';
