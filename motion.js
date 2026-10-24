@@ -19,7 +19,7 @@ function choreography(){
  });
 }
 // A short response when the visitor changes a diagram, not a synthetic data animation.
-for(const [selector,target] of [['[data-stage]','.stage-caption'],['[data-npc-step]','#npc-description'],['[data-engine-state]','#engine-description'],['[data-role]','#role-copy']])
+for(const [selector,target] of [['[data-stage]','.stage-caption'],['[data-npc-step]','#npc-description'],['[data-engine-state]','#engine-description'],['button[data-role]','#role-copy']])
  $$(selector).forEach(button=>button.addEventListener('click',()=>{if(!paused()&&window.gsap)gsap.fromTo(target,{opacity:.55},{opacity:1,duration:.3,overwrite:true});}));
 $$('.quant-instrument,.pipeline-instrument,.engine-visual').forEach(panel=>panel.addEventListener('pointermove',e=>{if(!fine.matches||paused())return;const r=panel.getBoundingClientRect();panel.style.setProperty('--light-x',(e.clientX-r.left)+'px');panel.style.setProperty('--light-y',(e.clientY-r.top)+'px');},{passive:true}));
 const reader=$('#case-dialog');new MutationObserver(()=>{if(reader.open&&!paused()&&window.gsap)gsap.fromTo('.case-intro',{opacity:.65},{opacity:1,duration:.35,overwrite:true});}).observe(reader,{attributes:true,attributeFilter:['open']});

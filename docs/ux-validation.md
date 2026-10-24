@@ -36,3 +36,16 @@ The main page was checked with supporting documents and résumé expanded. Quant
 Functional checks covered mobile project selection, Grid switching, reader previous/next controls, browser Back/Forward, closing from an empty page hash after manual scrolling, direct project-link reload, returning to the interactive exhibit, and navigating from reader to expanded reports/slides. Original 22 slides remain present; all internal anchor targets are present and no duplicate IDs were found. JavaScript syntax and whitespace checks passed.
 
 Browser emulation covers layout and interaction; physical-device performance and printed output were not measured.
+
+## 2026-10-24 — archive containment and evidence links
+
+- Replaced each whole-card anchor with an article containing a case opener and a separate resource navigation. No nested anchors.
+- Allocated independent grid rows to the title, image, case action, stack label, and resource links. Removed the floating pseudo-element action that covered the image.
+- Browser-checked Shelf and Grid at 320, 390, 600, 768, 1024, 1280, and 1600 px: all seven cards passed title/image/action separation, title/card vertical containment, and resource horizontal containment. Grid pages had no horizontal overflow. The ten study/exhibit/workbench resource wrappers also passed horizontal containment at every width.
+- Checked keyboard case opening, previous-case navigation, Back to the archive, study-tab resource changes, and the Odyssey presentation shortcut opening its disclosure without opening a case. External resource activation opened GitHub separately.
+- Scoped the Odyssey role handlers to role buttons; archive contribution metadata must never enter the role-control handler.
+- Verified 15 linked document/source file paths using GitHub's contents API. Report labels distinguish the CPU single-cycle .doc report, CNN Lab 4 PDF, NPC performance report, and Pointillism validation notes. Workbench projects without a formal report link to their README; FPGA links to generated timing/utilization reports.
+- Odyssey retains its actual university GitLab repository. Its presentation shortcut points to the existing portfolio presentation/context section; it does not imply a separate report file.
+- Existing six study-model tests passed; changed JavaScript passed syntax checks and git diff whitespace checks.
+
+Resource mappings live in `resources.js`; document links are shared across study, exhibit, archive, and case views.

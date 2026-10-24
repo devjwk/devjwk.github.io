@@ -7,7 +7,7 @@ let view='shelf',filter='all',active=0,shown=cards.slice(),dragStart=null,dragge
 function render(){
  shown=cards.filter(c=>filter==='all'||c.dataset.category===filter);
  active=Math.max(0,Math.min(active,shown.length-1));
- cards.forEach(c=>{const i=shown.indexOf(c);let offset=i-active;if(offset>shown.length/2)offset-=shown.length;if(offset<-shown.length/2)offset+=shown.length;c.hidden=i<0;c.classList.toggle('is-current',i===active);c.tabIndex=view==='shelf'&&i!==active?-1:0;c.style.setProperty('--offset',offset);c.style.setProperty('--scale',i===active?1:.89-Math.min(Math.abs(offset),3)*.035);c.style.setProperty('--opacity',i===active?1:Math.abs(offset)>2?0:.52);c.style.setProperty('--layer',10-Math.abs(offset));c.style.visibility=view==='shelf'&&Math.abs(offset)>2?'hidden':'';c.style.pointerEvents=view==='shelf'&&Math.abs(offset)>2?'none':'';c.setAttribute('aria-label',(view==='grid'||i===active?'Open ':'Select ')+c.dataset.name);});
+ cards.forEach(c=>{const i=shown.indexOf(c);let offset=i-active;if(offset>shown.length/2)offset-=shown.length;if(offset<-shown.length/2)offset+=shown.length;c.hidden=i<0;c.classList.toggle('is-current',i===active);c.tabIndex=-1;const open=$('.archive-card-open',c),available=view==='grid'||i===active;open.tabIndex=available?0:-1;$$('.archive-card-resources a',c).forEach(a=>a.tabIndex=available?0:-1);$('.card-open-hint',c).textContent=available?'Open case ↗':'Select project →';c.style.setProperty('--offset',offset);c.style.setProperty('--scale',i===active?1:.89-Math.min(Math.abs(offset),3)*.035);c.style.setProperty('--opacity',i===active?1:Math.abs(offset)>2?0:.52);c.style.setProperty('--layer',10-Math.abs(offset));c.style.visibility=view==='shelf'&&Math.abs(offset)>2?'hidden':'';c.style.pointerEvents=view==='shelf'&&Math.abs(offset)>2?'none':'';c.setAttribute('aria-label',c.dataset.name);open.setAttribute('aria-label',(view==='grid'||i===active?'Open ':'Select ')+c.dataset.name);});
  const selected=shown[active];if(selected){$('#shelf-title').textContent=selected.dataset.name;$('#shelf-description').textContent=selected.dataset.desc;$('#shelf-position').textContent=String(active+1).padStart(2,'0')+' / '+String(shown.length).padStart(2,'0');}
  $('#shelf-prev').disabled=$('#shelf-next').disabled=shown.length<2;
  $('.archive-count').textContent=String(shown.length).padStart(2,'0')+' PROJECTS / '+(filter==='all'?'ALL WORK':filter==='intelligence'?'MACHINE LEARNING':filter.toUpperCase());
@@ -15,16 +15,16 @@ function render(){
  viewButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
  archive.dataset.view=view;archive.classList.toggle('shelf-mode',view==='shelf');stage.setAttribute('aria-roledescription',view==='shelf'?'carousel':'project list');
 }
-function move(direction,focus=false){active=(active+direction+shown.length)%shown.length;render();if(focus)shown[active]?.focus({preventScroll:true});}
+function move(direction,focus=false){active=(active+direction+shown.length)%shown.length;render();if(focus)$('.archive-card-open',shown[active])?.focus({preventScroll:true});}
 filters.forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;active=0;render();}));
 viewButtons.forEach(b=>{b.addEventListener('click',()=>{stage.classList.add('layout-switching');view=b.dataset.view;render();requestAnimationFrame(()=>requestAnimationFrame(()=>stage.classList.remove('layout-switching')));});b.disabled=false;});
 $('#shelf-prev').addEventListener('click',()=>move(-1));$('#shelf-next').addEventListener('click',()=>move(1));
-stage.addEventListener('keydown',e=>{if(view!=='shelf'||!['ArrowLeft','ArrowRight','Home','End','Enter'].includes(e.key))return;e.preventDefault();if(e.key==='Enter')openCase(shown[active].dataset.case);else if(e.key==='Home'||e.key==='End'){active=e.key==='Home'?0:shown.length-1;render();shown[active].focus({preventScroll:true});}else move(e.key==='ArrowRight'?1:-1,true);});
-stage.addEventListener('pointerdown',e=>{if(view!=='shelf'||e.button!==0)return;dragStart={x:e.clientX,y:e.clientY};dragged=false;});
+stage.addEventListener('keydown',e=>{if(e.target.closest('.archive-card-resources')||view!=='shelf'||!['ArrowLeft','ArrowRight','Home','End','Enter'].includes(e.key))return;e.preventDefault();if(e.key==='Enter')openCase(shown[active].dataset.case);else if(e.key==='Home'||e.key==='End'){active=e.key==='Home'?0:shown.length-1;render();$('.archive-card-open',shown[active]).focus({preventScroll:true});}else move(e.key==='ArrowRight'?1:-1,true);});
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('.archive-card-resources')||view!=='shelf'||e.button!==0)return;dragStart={x:e.clientX,y:e.clientY};dragged=false;});
 stage.addEventListener('pointermove',e=>{if(!dragStart)return;const dx=e.clientX-dragStart.x,dy=e.clientY-dragStart.y;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>9){dragged=true;if(!stage.hasPointerCapture(e.pointerId))stage.setPointerCapture(e.pointerId);stage.style.setProperty('--drag-x',Math.max(-130,Math.min(130,dx))+'px');}});
 function endDrag(e){if(!dragStart)return;const dx=e.clientX-dragStart.x;dragStart=null;stage.style.removeProperty('--drag-x');if(dragged&&Math.abs(dx)>40)move(dx<0?1:-1);if(dragged)setTimeout(()=>{dragged=false;},0);}
 stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',()=>{dragStart=null;dragged=false;stage.style.removeProperty('--drag-x');});stage.addEventListener('dragstart',e=>e.preventDefault());
-cards.forEach(card=>card.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(dragged)return;const i=shown.indexOf(card);if(view==='shelf'&&i!==active){active=i;render();}else openCase(card.dataset.case);}));
+cards.forEach(card=>card.addEventListener('click',e=>{if(e.target.closest('.archive-card-resources'))return;e.preventDefault();e.stopPropagation();if(dragged)return;const i=shown.indexOf(card);if(view==='shelf'&&i!==active){active=i;render();}else openCase(card.dataset.case);}));
 $('#open-selected').addEventListener('click',()=>openCase(shown[active].dataset.case));
 render();
 
@@ -78,7 +78,7 @@ function openCase(id,push=true){
  restore();if(id.startsWith('proj-'))$('.ptab[href="#'+id+'"]')?.click();
  $('#case-dialog-label').textContent=card.dataset.name;$('#case-title').textContent=card.dataset.name;$('#case-lede').textContent=card.dataset.desc;$('#case-role').textContent=card.dataset.role;$('#case-result').textContent=card.dataset.result;$('#case-type').textContent=$('.cover-bottom>span',card).textContent;$('#case-source').href=sourceLinks[id];
  placeholder=document.createComment('case-study-location');panel.before(placeholder);$('#case-content').append(panel);reading=panel;
- paintReaderNavigation(id);document.body.classList.add('dialog-open');if(!dialog.open)dialog.showModal();dialog.scrollTop=0;$('#case-close').focus({preventScroll:true});
+ dialog.dataset.case=id;window.dispatchEvent(new CustomEvent('portfolio:casechange',{detail:id}));paintReaderNavigation(id);document.body.classList.add('dialog-open');if(!dialog.open)dialog.showModal();dialog.scrollTop=0;$('#case-close').focus({preventScroll:true});
  if(push){const state={portfolioReader:true,returnHash:origin.hash,returnScroll:origin.scroll,readerIds};if(alreadyOpen)history.replaceState(state,'','#'+id);else history.pushState(state,'','#'+id);}
  handledHash=location.hash;
 }
@@ -101,7 +101,7 @@ function applyRoute(){
 }
 window.addEventListener('popstate',applyRoute);window.addEventListener('hashchange',applyRoute);
 document.addEventListener('click',e=>{
- const a=e.target.closest('a[href^="#"]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.classList.contains('ptab')||a.classList.contains('archive-card'))return;
+ const a=e.target.closest('a[href^="#"]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.classList.contains('ptab')||a.classList.contains('archive-card-open'))return;
  const id=a.hash.slice(1);if(!document.getElementById(id))return;e.preventDefault();
  if(a.dataset.openCase||id.startsWith('proj-'))openCase(a.dataset.openCase||id);
  else if(dialog.open)dismissReader(a.hash);else navigate(a.hash);
