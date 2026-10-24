@@ -31,6 +31,8 @@ render();
 // Existing case-study elements are moved, never duplicated, preserving graphs and IDs.
 const dialog=$('#case-dialog');let reading=null,placeholder=null,lastFocus=null,openScroll=0,preserveURL=false;
 const sourceLinks={
+ 'proj-point':'https://github.com/devjwk/pointillism-gallery',
+ 'proj-detective':'https://github.com/devjwk/ai-npc-detective-game',
  'proj-riscv':'https://github.com/devjwk/Project-Part-1',
  'proj-quant':'https://github.com/devjwk/cpre487lab4',
  'proj-android':'https://github.com/devjwk/coms3090-2_sc_2',
@@ -51,7 +53,7 @@ function openCase(id,push=true){
 $('#case-close').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('close',()=>{restore();document.body.classList.remove('dialog-open');if(!preserveURL&&(location.hash.startsWith('#proj-')||location.hash==='#page-senior-design'))history.replaceState(null,'','#archive');preserveURL=false;window.scrollTo({top:openScroll,behavior:'instant'});if(lastFocus?.isConnected)lastFocus.focus({preventScroll:true});});
 dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();});
-document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#proj-"]');if(a&&!a.classList.contains('archive-card')&&!a.classList.contains('ptab')){e.preventDefault();openCase(a.hash.slice(1));}},true);
+document.addEventListener('click',e=>{const custom=e.target.closest('[data-open-case]');if(custom){e.preventDefault();openCase(custom.dataset.openCase);return;}const a=e.target.closest('a[href^="#proj-"]');if(a&&!a.classList.contains('archive-card')&&!a.classList.contains('ptab')){e.preventDefault();openCase(a.hash.slice(1));}},true);
 function applyURL(){const id=location.hash.slice(1);if(id.startsWith('proj-'))openCase(id,false);else if(dialog.open){preserveURL=true;dialog.close();}}
 window.addEventListener('hashchange',applyURL);window.addEventListener('popstate',applyURL);applyURL();
 
@@ -74,7 +76,7 @@ function drawBackground(force=false){if(!ctx)return;const ratio=Math.min(deviceP
 }
 function frame(now){raf=0;if(document.hidden)return;if(now-last>=32){if(!paused){t+=.006;pointer+=(target-pointer)*.03;}drawBackground();last=now;}if(!paused)requestBackground();}
 function resize(){const ratio=Math.min(devicePixelRatio||1,1.5);width=innerWidth;height=innerHeight;bg.width=Math.round(width*ratio);bg.height=Math.round(height*ratio);drawBackground(true);requestBackground();}
-function paintMotionButton(){const b=$('#motion-toggle');b.setAttribute('aria-pressed',String(paused));b.textContent=paused?'Play background':'Pause background';}
+function paintMotionButton(){document.body.dataset.motionPaused=String(paused);const b=$('#motion-toggle');b.setAttribute('aria-pressed',String(paused));b.textContent=paused?'Play background':'Pause background';}
 $('#motion-toggle').addEventListener('click',()=>{paused=!paused;paintMotionButton();if(paused&&raf){cancelAnimationFrame(raf);raf=0;drawBackground();}else requestBackground();});
 reduce.addEventListener('change',e=>{paused=e.matches;paintMotionButton();if(paused&&raf){cancelAnimationFrame(raf);raf=0;}requestBackground();});
 window.addEventListener('pointermove',e=>{target=e.clientY/Math.max(1,innerHeight);},{passive:true});window.addEventListener('resize',resize);window.addEventListener('scroll',()=>{if(paused)drawBackground();},{passive:true});
